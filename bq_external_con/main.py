@@ -5,17 +5,40 @@
 import os
 import json
 import requests
+import concurrent.futures
 
 from google.oauth2 import service_account
+import googlemaps
 
+api_key = "AIzDUmmLEap6xbd5RDr-Bw4JW2GDgSyBekJAS3U"
+gmaps = googlemaps.Client(api_key)
 
+# define the max number of threads
+max_workers = 100
 
-def send_single_request(body):
-    body = {
-        'address': body
-    }
-    response = requests.get(PROJECT_SINGLE_REQ_URL, json=body)
-    return response.text
+def send_single_request(address):
+
+    try:
+        result = gmaps.find_place(
+            address,
+            "textquery",
+            fields=[
+                "formatted_address",
+                "business_status",
+                "types",
+                "geometry/location/lat",
+                "geometry/location/lng",
+                "place_id",
+                "plus_code",
+                "user_ratings_total",
+            ],
+            language="en-US",
+        )
+        return result
+    except Exception as e:
+        print(f"Error searching for place: {e}")
+        return None
+
 
 def gmaps_batch_api(request):
 
@@ -32,7 +55,7 @@ def gmaps_batch_api(request):
     # Create a ThreadPoolExecutor
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(send_request, call[0]) for call in calls]
+        futures = [executor.submit(send_single_request, call[0]) for call in calls]
 
     # Wait for all tasks to complete
     print("Waiting task finish")

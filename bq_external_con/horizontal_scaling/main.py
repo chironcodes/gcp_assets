@@ -40,7 +40,7 @@ def batch_cat_request(request):
     # Create a ThreadPoolExecutor
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(send_request, call[0]) for call in calls]
+        futures = [executor.submit(send_single_request, call[0]) for call in calls]
 
     # Wait for all tasks to complete
     print("Waiting task finish")
